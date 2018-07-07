@@ -20,14 +20,14 @@ namespace pgm {
 		FeatureVector generateFeatureVector(std::vector<int>& rawFeatures){
 			//std::cout << rawFeatures << std::endl;
 			/* Print path vector to console */
-			std::copy(rawFeatures.begin(), rawFeatures.end(), std::ostream_iterator<int>(std::cout, " "));
-			std::cout << std::endl;
+			//std::copy(rawFeatures.begin(), rawFeatures.end(), std::ostream_iterator<int>(std::cout, " "));
+			//std::cout << std::endl;
 			
 			FeatureVector f;
 			for (std::size_t i = 0; i != rawFeatures.size(); ++i) {
 				if(rawFeatures[i] == 1) {
 					f[i] = 1;
-					std::cout << "F:" << rawFeatures[i] << std::endl;
+					//std::cout << "F:" << rawFeatures[i] << std::endl;
 				}
 			}
 
