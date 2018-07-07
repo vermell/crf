@@ -1,1 +1,0 @@
-g++ -fPIC -L/home/bilboi/programming/pyGCO  -fopenmp -fPIC -lpython2.7 -lpthread -ldl -lutil -lm -lboost_python -lboost_numpy -lcgco  -shared -Wl,-soname,crf.so -o crf.so CMakeFiles/crf.dir/crfmu.cpp.o CMakeFiles/crf.dir/graphicalmodel.cpp.o 
