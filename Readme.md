@@ -1,2 +1,2 @@
 # This is a Grapical Model Framework
-To be continued.
+** Believe Propagiton(libdai) do inference in CRF/MRF.
