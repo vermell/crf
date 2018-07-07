@@ -1,1 +1,0 @@
-g++  -L/home/bilboi/programming/pyGCO  -fopenmp -fPIC -lpython2.7 -lpthread -ldl -lutil -lm -lboost_python -lboost_numpy -lcgco    -lgco -rdynamic CMakeFiles/infer_test.dir/infer.cpp.o  -o infer_test 
