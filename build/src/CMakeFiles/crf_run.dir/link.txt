@@ -1,0 +1,1 @@
+g++   -fopenmp -fPIC -Wall -Wextra -lpython2.7 -lpthread -ldl -lutil -lm -lboost_python    -rdynamic CMakeFiles/crf_run.dir/main.cpp.o  -o crf_run 

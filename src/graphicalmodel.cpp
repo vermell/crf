@@ -3,11 +3,12 @@
 #include "graphicalmodel.hpp"
 #include "factor.hpp"
 #include "featurefactory.hpp"
+//#include "score_functions.hpp"
 #include <math.h>
 #include <algorithm>
 #include <Eigen/Core>
 #include <LBFGS.h>
-
+#include <vector>
 
 pgm::Parameter unariesP {-1.0,-1.0,-1.0,0.0,0.0,0.0};
 pgm::Parameter pairwiseP;
@@ -15,6 +16,8 @@ pgm::DiscreteDimension boolDim(2);
 pgm::FeatureDimension featureDim(3);
 int featureSize = 3;
 int labelSize = 2;
+
+
 
 // real params
 pgm::UnaryParameter* paramU = pgm::UnaryParameter::getInstance();
@@ -76,13 +79,14 @@ std::vector<double> pgm::GraphicalModel::gradientLogLikelihood(){
 			double s = 0.0;
 			for(int y = 0; y< labelSize; y++){
 				s += factor.conditionalProbabilityWithEvidence(y)*factor.getFeatureFunction(k);
-				//std::cout << factor.conditionalProbabilityWithEvidence(y)*factor.getFeatureFunction(k) << std::endl;
+				std::cout << factor.conditionalProbabilityWithEvidence(y) << std::endl;
 				sum += factor.conditionalProbabilityWithEvidence(y)*factor.getFeatureFunction(k);
 			}
 			//std::cout << "s = " << s << std::endl;
 		}
 
 		std::cout << k << " = " <<count <<" :: " << sum << std::endl;
+		double regularization = 1.0 * paramU->theta[k];
 		v.push_back(count - sum);
 	
     }
@@ -96,6 +100,63 @@ pgm::GraphicalModel::GraphicalModel(int featureSize, int labelSize, Parameter& u
 	std::cout << "Creating Graphical Model." << std::endl;
 }
 
+pgm::GraphicalModel::GraphicalModel(int featureSize, int labelSize):
+	featureSize(featureSize), labelSize(labelSize) {
+	std::cout << "Creating Graphical Model." << std::endl;
+	
+ 
+}
+
+//void addX(int idx, double value[]);
+//		void addY(int idy, int value);
+//		void addUnary(int idx, int idy);
+
+void pgm::GraphicalModel::addX(int idx, std::vector<int> values){
+	
+    pgm::FeatureFactory featureFactory(featureSize);
+
+	pgm::FeatureVector fv = featureFactory.generateFeatureVector(values);
+
+	pgm::FeatureVariable x(idx, fv, featureDim);
+	xVariables.push_back(x);
+
+	std::cout << "Added Variable " << idx << std::endl;
+}
+
+void pgm::GraphicalModel::addY(int idy, int value){
+	pgm::DiscreteVariable y(idy, value, boolDim);
+	yVariables.push_back(y);
+}
+
+void pgm::GraphicalModel::addUnary(int idx, int idy){
+	// check if id's exists
+
+	FeatureVariable* x = nullptr;
+	for(auto& xi: xVariables){
+		if(xi.getId() == idx)
+			x = &xi;
+	}
+
+	DiscreteVariable* y = nullptr;
+	for(auto& yi: yVariables){
+		if(yi.getId() == idy)
+			y = &yi;
+	}
+	
+
+	//auto y = std::find(yVariables.begin(), yVariables.end(), [&](DiscreteVariable & o) {
+	//																o.getId() == idy;
+	//});
+	
+
+	
+	if(x && y) {
+		std::cout<<"Add Potential (" << idx << "," << idy << ")" << std::endl;
+		addNodePotential(pgm::NodePotential(*x,*y));
+	}
+	
+}
+
 void pgm::GraphicalModel::addNodePotential(pgm::NodePotential unary) {
 	//	if(std::find(unaries.begin(), unaries.end(), [&unary](const Type& obj) {return obj.getName() == myString.get;}) != unaries.end()){
 		unaries.push_back(unary);
@@ -106,10 +167,20 @@ void pgm::GraphicalModel::addNodePotential(pgm::NodePotential unary) {
 }
 
 double pgm::GraphicalModel::logLikelihood() {
+    double lambda = 1.0d;
 	double sum = 0.0;
 	for(auto& factor: this->unaries)
 		sum -= factor.logConditionalProbability();
-	return sum;
+
+
+	double rSum = 0.0d;
+	for(auto& p: paramU->theta){
+		rSum += pow(p,2);
+	}
+	double regularization = lambda*0.5 * rSum;
+	std::cout << "Regularization-Term: " << regularization << std::endl;
+	
+	return sum + regularization;
 }
 	
 
@@ -144,6 +215,10 @@ void pgm::GraphicalModel::learnModel(){
 
 void pgm::GraphicalModel::printInfo(){
 	std::cout << "Model contains " << unaries.size() << " factors." << std::endl;
+	
+	std::cout << "Model contains " << xVariables.size() << " X-Variables." << std::endl;
+
+	std::cout << "Model contains " << yVariables.size() << " Y-Variables." << std::endl;
 }
 
 // be carefull -> global vars
@@ -176,7 +251,7 @@ int main(){
 	pgm::GraphicalModel model (3,2, unariesP, pairwiseP);
 	//std::cout << model.logLiklihood() << std::endl;
 
-    for(int i=0; i<320000; i++){
+    for(int i=0; i<320; i++){
 		
 		//model.addNodePotential(getFactorFrom({0,1,1}, 0));
 		

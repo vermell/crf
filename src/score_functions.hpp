@@ -7,7 +7,7 @@
 #include <numeric>
 
 namespace pgm {
-	double weight_product(FeatureVector fv, int variablevalue, std::vector<double> params, int stepsize){
+	inline double weight_product(FeatureVector fv, int variablevalue, std::vector<double> params, int stepsize){
 		std::vector<double> r;
 		for(auto& f: fv){
 			int index = variablevalue * stepsize + f.first;

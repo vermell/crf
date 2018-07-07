@@ -19,27 +19,28 @@ namespace pgm {
 		int size() { return maxrange;};
 	};
 
+	
 	template<>
-	bool Dimension<int>::isValidValue(int value) {
-		if(0 <= value && value < maxrange) return true;
+	inline bool Dimension<int>::isValidValue(int value) {
+		if(0 <= value && value < this->maxrange) return true;
 
 		return false;
-	}
-
+	};
+	
 	template<>
-	bool Dimension<FeatureVector>::isValidValue(FeatureVector value) {
-        //for(auto & v: value){
+	inline bool Dimension<FeatureVector>::isValidValue(FeatureVector value) {
+		//for(auto & v: value){
 		//	if(0 > v || value >= maxrange) return false;
 		//}
 		if(value.size() <= maxrange)
 			return true;
+
 		return false;
 	}
 
-	
 	typedef Dimension<int> DiscreteDimension;
 	typedef Dimension<FeatureVector> FeatureDimension;
-	
+    	
 	template <class T, class D>
 	class Variable {
 		T value;
@@ -49,11 +50,13 @@ namespace pgm {
 		Variable(int id, T value, D dimension): id(id), value(value), dimension(dimension){
 			if(!dimension.isValidValue(value))
 				throw std::invalid_argument("Variable out of range.");
-		}
-		int getId() { return id;}
-		T getValue() { return value;}
-		D getDimension() { return dimension;}
+		};
+		
+		int getId() {return id;};
+		T getValue(){return value;};
+		D getDimension(){return dimension;};
 	};
+
 
 	typedef Variable<FeatureVector, FeatureDimension> FeatureVariable;
 	typedef Variable<int, DiscreteDimension> DiscreteVariable;
@@ -69,8 +72,7 @@ namespace pgm {
 
 	typedef std::vector<double> Parameter;
 
-	class UnaryParameter
-	{
+	class UnaryParameter {
     private:
         /* Here will be the instance stored. */
         static UnaryParameter* instance;
@@ -96,7 +98,7 @@ namespace pgm {
 	};
 
 	/* Null, because instance will be initialized on demand. */
-	UnaryParameter* UnaryParameter::instance = 0;
+    inline pgm::UnaryParameter* UnaryParameter::instance = 0;
 
 	
 	class NodePotential: Factor {
@@ -106,8 +108,13 @@ namespace pgm {
 		
 	public:
 		NodePotential(FeatureVariable x, DiscreteVariable y): x(x), y(y) {
-			if(params->theta.size() != x.getDimension().size() * y.getDimension().size())
+			std::cout << "Size: " <<x.getDimension().size() << std::endl;
+			std::cout << "Size: " <<y.getDimension().size() << std::endl;
+			
+			if(params->theta.size() != x.getDimension().size() * y.getDimension().size()){
+				std::cout << "Size: " <<params->theta.size() << std::endl;
 				throw std::invalid_argument("Parameter-Vector has wrong size.");
+			}
 		};
 
 		double score() override {
@@ -177,7 +184,7 @@ namespace pgm {
 
 
 	/* Helper Function */
-	void printFeatureVector(FeatureVector f) {
+	inline void printFeatureVector(FeatureVector f) {
 		std::cout << "Vector[ ";
 		for(auto& v: f){
 			std::cout << v.first << " ";
@@ -186,4 +193,5 @@ namespace pgm {
 		
 	};
 }
+
 #endif

@@ -1,0 +1,1 @@
+g++ -fPIC  -fopenmp  -shared -Wl,-soname,libcrf_toolbox.so -o libcrf_toolbox.so CMakeFiles/crf_toolbox.dir/crfmu.cpp.o 

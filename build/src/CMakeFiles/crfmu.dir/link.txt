@@ -1,0 +1,1 @@
+g++   -fopenmp    -rdynamic CMakeFiles/crfmu.dir/crfmu.cpp.o  -o crfmu 
