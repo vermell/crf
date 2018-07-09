@@ -9,11 +9,13 @@
 #include <Eigen/Core>
 #include <LBFGS.h>
 #include <vector>
+#include "infer.hpp"
+
 
 pgm::Parameter unariesP {-1.0,-1.0,-1.0,0.0,0.0,0.0};
 pgm::Parameter pairwiseP;
-pgm::DiscreteDimension boolDim(2);
-pgm::FeatureDimension featureDim(3);
+//pgm::DiscreteDimension boolDim(2);
+//pgm::FeatureDimension featureDim(3);
 int featureSize = 3;
 int labelSize = 2;
 
@@ -68,26 +70,37 @@ public:
 std::vector<double> pgm::GraphicalModel::gradientLogLikelihood(){
 	std::vector<double> v;
 
-	for(int k=0; k < paramU->theta.size(); k++){
+	for(int h=0; h < featureSize; h++)
+	for(int k=0; k < labelSize; k++){
 		long double count = 0.0L;
 		for(auto& factor: unaries){
-			count += factor.getFeatureFunction(k);
+			count += factor.getFeatureFunction(k+labelSize*h);
 		}
 
 		long double sum = 0.0L;
 		for(auto& factor: unaries){
 			double s = 0.0;
 			for(int y = 0; y< labelSize; y++){
-				s += factor.conditionalProbabilityWithEvidence(y)*factor.getFeatureFunction(k);
-				std::cout << factor.conditionalProbabilityWithEvidence(y) << std::endl;
-				sum += factor.conditionalProbabilityWithEvidence(y)*factor.getFeatureFunction(k);
+				double s_d = factor.conditionalProbabilityWithEvidence(y)*factor.getFeatureFunction(h*labelSize+y);
+				//std::cout << factor.conditionalProbabilityWithEvidence(y) << std::endl;
+
+				if(!(s_d != s_d))
+					s += s_d;
+				
+				long double d  = factor.conditionalProbabilityWithEvidence(y)*factor.getFeatureFunction(h*labelSize + y);
+				//std::cout << d << std::endl;
+				if(!(d !=d))
+					sum += d;
 			}
 			//std::cout << "s = " << s << std::endl;
 		}
 
-		std::cout << k << " = " <<count <<" :: " << sum << std::endl;
-		double regularization = 1.0 * paramU->theta[k];
-		v.push_back(count - sum);
+		//std::cout << k + labelSize * h << " = " <<count <<" :: " << sum << std::endl;
+		double regularization = 1.0 * paramU->theta[h*labelSize + k];
+		//std::cout << "T: " << (count -sum -regularization) << std::endl;
+
+		//std::cout << regularization << std::endl;
+		v.push_back(count - sum + regularization);
 	
     }
 	
@@ -97,11 +110,19 @@ std::vector<double> pgm::GraphicalModel::gradientLogLikelihood(){
 
 pgm::GraphicalModel::GraphicalModel(int featureSize, int labelSize, Parameter& unaryParameter, Parameter& pairwiseParameter):
 	featureSize(featureSize), labelSize(labelSize), unaryParameter(unaryParameter), pairwiseParameter(pairwiseParameter)  {
+	featureDim = pgm::FeatureDimension(featureSize);
+	
+	yDim = pgm::DiscreteDimension(labelSize);
 	std::cout << "Creating Graphical Model." << std::endl;
 }
 
 pgm::GraphicalModel::GraphicalModel(int featureSize, int labelSize):
 	featureSize(featureSize), labelSize(labelSize) {
+
+	featureDim = pgm::FeatureDimension(featureSize);
+	
+	yDim = pgm::DiscreteDimension(labelSize);
+
 	std::cout << "Creating Graphical Model." << std::endl;
 	
  
@@ -124,7 +145,8 @@ void pgm::GraphicalModel::addX(int idx, std::vector<int> values){
 }
 
 void pgm::GraphicalModel::addY(int idy, int value){
-	pgm::DiscreteVariable y(idy, value, boolDim);
+	std::cout << value << std::endl;
+	pgm::DiscreteVariable y(idy, value, yDim);
 	yVariables.push_back(y);
 }
 
@@ -168,30 +190,39 @@ void pgm::GraphicalModel::addNodePotential(pgm::NodePotential unary) {
 
 double pgm::GraphicalModel::logLikelihood() {
     double lambda = 1.0d;
-	double sum = 0.0;
-	for(auto& factor: this->unaries)
-		sum -= factor.logConditionalProbability();
+	double sum = 0.0d;
+	for(auto& factor: this->unaries){
+		double d = factor.logConditionalProbability();
 
+		if(!(d !=d))
+			sum -= d;
+		//sum -= factor.logConditionalProbability();
+		//std::cout << "a " <<factor.conditionalProbability() << std::endl;
+	}
 
 	double rSum = 0.0d;
 	for(auto& p: paramU->theta){
-		rSum += pow(p,2);
+		double add = pow(p,2);
+
+		//std::cout << "b " << add << std::endl;
+		if (!(add != add))
+			rSum += add;
 	}
 	double regularization = lambda*0.5 * rSum;
-	std::cout << "Regularization-Term: " << regularization << std::endl;
-	
+	//std::cout << "Regularization-Term: " << regularization << "rsum: " << rSum  << std::endl;
+	//std::cout << sum << std::endl;
 	return sum + regularization;
 }
 	
 
 void pgm::GraphicalModel::learnModel(){
-	const int n = 6;
+	const int n = labelSize * featureSize;
     // Set up parameters
 	LBFGSpp::LBFGSParam<double> param;
 
 	
-	param.epsilon = 1e-50;
-    param.max_iterations = 100;
+	param.epsilon = 1e-6;
+    param.max_iterations = 30;
 
     // Create solver and function object
 	LBFGSpp::LBFGSSolver<double> solver(param);
@@ -225,6 +256,10 @@ void pgm::GraphicalModel::printInfo(){
 
 int currId = -1;
 pgm::NodePotential getFactorFrom(std::vector<int> featurevector, int yValue) {
+	pgm::DiscreteDimension boolDim(2);
+	pgm::FeatureDimension featureDim(3);
+
+
 	currId += 1;
 	pgm::FeatureFactory featureFactory(featureSize);
 
@@ -245,20 +280,20 @@ pgm::NodePotential getFactorFrom(std::vector<int> featurevector, int yValue) {
 
 int main(){
 	
-	paramU->theta = {-1.0,-1.0,-1.0,0.0,0.0,0.0};
+	paramU->theta = {-1.0,-1.0,-1.0,-1.0,-1.0,-1.0};
 	
 	
-	pgm::GraphicalModel model (3,2, unariesP, pairwiseP);
+	pgm::GraphicalModel model (3,2);//, unariesP, pairwiseP);
 	//std::cout << model.logLiklihood() << std::endl;
 
-    for(int i=0; i<320; i++){
+    for(int i=0; i<10; i++){
 		
 		//model.addNodePotential(getFactorFrom({0,1,1}, 0));
 		
-		model.addNodePotential(getFactorFrom({1,1,1}, 1));
+		model.addNodePotential(getFactorFrom({1,0,1}, 0));
 		
-		model.addNodePotential(getFactorFrom({0,1,1}, 0));
-		model.addNodePotential(getFactorFrom({0,1,1}, 0));
+		model.addNodePotential(getFactorFrom({0,1,0}, 1));
+		model.addNodePotential(getFactorFrom({0,1,0}, 1));
 		//model.addNodePotential(getFactorFrom({0,1,1}, 0));
 		
 		//model.addNodePotential(getFactorFrom({0,1,1}, 0));
@@ -281,16 +316,24 @@ int main(){
 
 	//model.unaryParameter[1] = -12;
 	double t = model.logLikelihood();
-	std::cout << "SCORE1" << t << std::endl;
+	std::cout << "SCORE1: " << t << std::endl;
 
 	
     double t2 = model.logLikelihood();
-	std::cout << "SCORE2" << t2 << std::endl;
+	std::cout << "SCORE2: " << t2 << std::endl;
 
 	model.learnModel();
 	//model.gradientLogLikelihood();
 
 	//paramU->theta[0]= -0.3;
-	pgm::NodePotential pot = getFactorFrom({1,1,1}, 1);
+	pgm::NodePotential pot = getFactorFrom({0,1,0}, 1);
 	std::cout << pot.conditionalProbability() << std::endl;
+
+	pgm::GraphicalModel model2 (3,2, unariesP, pairwiseP);
+
+	
+	//	inferMQPBO(model);
+
+
+	
 }
