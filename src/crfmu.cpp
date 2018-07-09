@@ -5,12 +5,18 @@
 #include<boost/python/module.hpp>
 #include<boost/python/def.hpp>
 #include<boost/python/extract.hpp>
+#include "infer.hpp"
 
 using namespace boost::python;
 namespace np = boost::python::numpy;
 // real params
 //pgm::UnaryParameter* paramU = pgm::UnaryParameter::getInstance();
 
+double fRand(double fMin, double fMax)
+{
+    double f = (double)rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
+}
 
 class GraphicalModelWrapper {
 
@@ -18,8 +24,15 @@ class GraphicalModelWrapper {
 
 	GraphicalModelWrapper(int featureSize, int labelSize)
 		: featureSize(featureSize), labelSize(labelSize) {
-		pgm::UnaryParameter::getInstance()->theta = std::vector<double>(featureSize*labelSize, -0.5);
-	
+		pgm::UnaryParameter::getInstance()->theta = std::vector<double>(featureSize*labelSize, -1.0);
+
+		
+		//pgm::UnaryParameter::getInstance()->theta = {-1.0,-1.0,-1.0,0.0,0.0,0.0};
+
+		for(int i = 0; i < (featureSize * labelSize); i++){
+			pgm::UnaryParameter::getInstance()-> theta[i] = fRand(-1.0, 0.0);
+		}
+		
 		gm = new pgm::GraphicalModel(featureSize, labelSize);
 	}
 
@@ -48,6 +61,10 @@ class GraphicalModelWrapper {
 
 	void printInfo(){
 		gm->printInfo();
+	}
+
+	void infer() {
+		inferMQPBO(*gm);
 	}
 
  private:
@@ -80,6 +97,7 @@ BOOST_PYTHON_MODULE(crf) {
 	  .def("print_info", &GraphicalModelWrapper::printInfo, "Print some statistics from Model.")
       .def("addY", &GraphicalModelWrapper::addY, "Add Y-Variable to the model.")
 	  .def("addUnary", &GraphicalModelWrapper::addUnary, "Add potential between var x_idx and y_idy")
-	  .def("learnModel", &GraphicalModelWrapper::learnModel, "Learn Parameters for model.");
+	  .def("learnModel", &GraphicalModelWrapper::learnModel, "Learn Parameters for model.")
+	  .def("infer", &GraphicalModelWrapper::infer, "Infer Model with Parameters.");
   def("test", testFunction, "This is a test.");
 }
