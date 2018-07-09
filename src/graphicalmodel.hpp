@@ -4,16 +4,22 @@
 #include "factor.cpp"
 #include <Eigen/Core>
 
+
 namespace pgm {
 	class GraphicalModel{
+		
+		DiscreteDimension yDim = 0;
+		FeatureDimension featureDim = 0;
+	public:
+
 		std::vector<NodePotential> unaries;
+		
 		int featureSize;
 		int labelSize;
 
 		std::vector<FeatureVariable> xVariables;
 		std::vector<DiscreteVariable> yVariables;
 		
-	public:
 		Parameter unaryParameter;
 		Parameter pairwiseParameter;
 
