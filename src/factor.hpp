@@ -102,11 +102,14 @@ namespace pgm {
 
 	
 	class NodePotential: Factor {
-		FeatureVariable x;
-		DiscreteVariable y;
+	
 		UnaryParameter* params = UnaryParameter::getInstance();
 		
 	public:
+
+		FeatureVariable x;
+		DiscreteVariable y;
+		
 		NodePotential(FeatureVariable x, DiscreteVariable y): x(x), y(y) {
 			std::cout << "Size: " <<x.getDimension().size() << std::endl;
 			std::cout << "Size: " <<y.getDimension().size() << std::endl;
@@ -130,12 +133,26 @@ namespace pgm {
 
 		double scoreWithEvidence(Evidence evidence) override {
 			//std::cout << "Score with Evidence:" << std::endl;
-			if(evidence.find(y.getId()) == evidence.end()){
+
+			int yvalue = -1;
+			
+			for(auto& elem: evidence){
+				//std::cout << elem.first << " r " << y.getId() << " : " << elem.second<< std::endl;
+				if (elem.first == y.getId())
+					yvalue = elem.second;
+			}
+
+
+			
+			if(yvalue == -1){
 				return score();
 			}
 			else {
-				
-				int yvalue = evidence[y.getId()];
+				//std::cout << "XXXXX" << std::endl;
+				//for(auto& p: params->theta)
+					//std::cout << p << std::endl;
+				//int yvalue = evidence[y.getId()];
+				//std::cout << "Y = " << yvalue << std::endl;
 				// check if valid -> maybe we can skip this
 				if(!y.getDimension().isValidValue(yvalue)){
 					throw std::invalid_argument("Wrong range of Variable in Score-Function.");
