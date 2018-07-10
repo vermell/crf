@@ -67,6 +67,30 @@ class GraphicalModelWrapper {
 		inferMQPBO(*gm);
 	}
 
+    np::ndarray getParams() {
+		
+		std::vector<double> v = pgm::UnaryParameter::getInstance()-> theta;
+		Py_intptr_t shape[1] = { v.size() };
+		np::ndarray result = np::zeros(1, shape, np::dtype::get_builtin<double>());
+		std::copy(v.begin(), v.end(), reinterpret_cast<double*>(result.get_data()));
+		return result;
+    }
+
+	void setParams(np::ndarray params) {
+		int n = params.shape(0);
+		//std::vector<double> f;
+		
+		if (gm->featureSize*gm->labelSize == n){
+			for(int i = 0; i < n; i++){
+				pgm::UnaryParameter::getInstance()->theta[i] = extract<double>(params[i]);
+			}
+			std::cout << "Added Parameter." << std::endl;
+		}
+		else{
+			std::cout << "Wrong Model. Couldnt add Parameter." << std::endl;
+		}
+	}
+
  private:
 	int featureSize;
 	int labelSize;
@@ -98,6 +122,8 @@ BOOST_PYTHON_MODULE(crf) {
       .def("addY", &GraphicalModelWrapper::addY, "Add Y-Variable to the model.")
 	  .def("addUnary", &GraphicalModelWrapper::addUnary, "Add potential between var x_idx and y_idy")
 	  .def("learnModel", &GraphicalModelWrapper::learnModel, "Learn Parameters for model.")
-	  .def("infer", &GraphicalModelWrapper::infer, "Infer Model with Parameters.");
+	  .def("infer", &GraphicalModelWrapper::infer, "Infer Model with Parameters.")
+	  .def("getParams", &GraphicalModelWrapper::getParams, "Get Unary Parameter")
+	  .def("setParams", &GraphicalModelWrapper::setParams, "Set Unary Parameter");
   def("test", testFunction, "This is a test.");
 }

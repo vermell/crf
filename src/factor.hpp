@@ -111,8 +111,8 @@ namespace pgm {
 		DiscreteVariable y;
 		
 		NodePotential(FeatureVariable x, DiscreteVariable y): x(x), y(y) {
-			std::cout << "Size: " <<x.getDimension().size() << std::endl;
-			std::cout << "Size: " <<y.getDimension().size() << std::endl;
+			//std::cout << "Size: " <<x.getDimension().size() << std::endl;
+			//std::cout << "Size: " <<y.getDimension().size() << std::endl;
 			
 			if(params->theta.size() != x.getDimension().size() * y.getDimension().size()){
 				std::cout << "Size: " <<params->theta.size() << std::endl;

@@ -141,11 +141,11 @@ void pgm::GraphicalModel::addX(int idx, std::vector<int> values){
 	pgm::FeatureVariable x(idx, fv, featureDim);
 	xVariables.push_back(x);
 
-	std::cout << "Added Variable " << idx << std::endl;
+	//std::cout << "Added Variable " << idx << std::endl;
 }
 
 void pgm::GraphicalModel::addY(int idy, int value){
-	std::cout << value << std::endl;
+	//std::cout << value << std::endl;
 	pgm::DiscreteVariable y(idy, value, yDim);
 	yVariables.push_back(y);
 }
@@ -173,7 +173,7 @@ void pgm::GraphicalModel::addUnary(int idx, int idy){
 
 	
 	if(x && y) {
-		std::cout<<"Add Potential (" << idx << "," << idy << ")" << std::endl;
+		//std::cout<<"Add Potential (" << idx << "," << idy << ")" << std::endl;
 		addNodePotential(pgm::NodePotential(*x,*y));
 	}
 	
@@ -221,8 +221,8 @@ void pgm::GraphicalModel::learnModel(){
 	LBFGSpp::LBFGSParam<double> param;
 
 	
-	param.epsilon = 1e-6;
-    param.max_iterations = 30;
+	param.epsilon = 1e-4;
+    param.max_iterations = 20;
 
     // Create solver and function object
 	LBFGSpp::LBFGSSolver<double> solver(param);
