@@ -13,6 +13,7 @@ def add_to_model(model, X, Y, offset, labels, num_features):
     width = len(X[0])
     offset_new = 0
 
+    curr_id = 1
     # helper
     y = []
     if height < 100 and width < 100:
@@ -20,24 +21,26 @@ def add_to_model(model, X, Y, offset, labels, num_features):
             for j in range(width):
                 if not X[i][j] is None:
                     # gen feature vector
-                    featureVector = []
-                    for label in range(labels):
-                        if label == Y[i][j]:
-                            featureVector.append(X[i][j])
-                        else:
-                            e = [0]*num_features
-                            featureVector.append(e)
+                    #featureVector = []
+                    # for label in range(labels):
+                    #    if label == Y[i][j]:
+                    #        featureVector.append(X[i][j])
+                    #    else:
+                    #        e = [0]*num_features
+                    #        featureVector.append(e)
 
-                            f = list(chain(*featureVector))
-                            # print(len(f))
-                            # print(f)
-                            gm.addX(offset + offset_new, np.array(X[i][j]))
-                            gm.addY(offset + offset_new, Y[i][j])
-                            gm.addUnary(offset + offset_new,
-                                        offset + offset_new)
-                            y.append(Y[i][j])
+                    #f = list(chain(*featureVector))
+                    # print(len(f))
+                    # print(f)
+                    gm.addX(offset + offset_new, np.array(X[i][j]))
+                    gm.addY(offset + offset_new, Y[i][j])
+                    gm.addUnary(offset + offset_new,
+                                offset + offset_new)
+                    y.append(Y[i][j])
+                    print("Added Var{}".format(curr_id))
+                    curr_id += 1
 
-                            offset_new += 1
+                    offset_new += 1
 
         print("ADDED Grid ({}x{})".format(width, height))
 
@@ -80,10 +83,13 @@ offset = 0
 gm = crf.GraphicalModel(len(feature_indices), num_labels)
 
 Y_label = []
-for idx in range(len(trainset[:50])):
+for idx in range(len(trainset[:1])):
     X, Y = grid_to_xy(trainset[idx], feature_indices)
     offset = add_to_model(gm, X, Y, offset, num_labels, num_features)
     Y_label = Y
+    print(len(X))
+    print(len(X[0]))
+
 
 print(len(trainset))
 

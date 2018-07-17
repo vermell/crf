@@ -172,13 +172,8 @@ namespace pgm {
 
 		double conditionalProbabilityWithEvidence(int yvalue) {
 			// p(y|x) see paper ~/studium/pgm/loglinear.pdf
-			double partitionFunction = 0.0;
-
-			for(int i=0; i<y.getDimension().size(); i++){
-				partitionFunction += scoreWithEvidence(pgm::Evidence({{y.getId(), i}}));
-			}
-			double prob = scoreWithEvidence(pgm::Evidence({{y.getId(), yvalue}})) / partitionFunction;
-			return prob;
+		    
+			return exp(logConditionalProbabilityWithEvidence(yvalue));
 		}
 
 		double conditionalProbability(){
@@ -190,12 +185,39 @@ namespace pgm {
 			}
 			double prob = score() / partitionFunction;
 			
-			return prob;
+			//return prob;
+			return exp(logConditionalProbability());
 		}
 
 		double logConditionalProbability(){
-			return log(conditionalProbability());
+
+			double g = 0.0d;
+		    for(int i=0; i<y.getDimension().size(); i++){
+				//std::cout << "index = " << index << " - v: " << variablevalue << std::endl; 
+				g += scoreWithEvidence(pgm::Evidence({{y.getId(), i}}));
+			}
+
+			double score_current = weight_product(x.getValue(), y.getValue(), params->theta, x.getDimension().size());
+			
+			
+			return score_current - log(g);
 		}
+
+		double logConditionalProbabilityWithEvidence(int yvalue) {
+			// p(y|x) see paper ~/studium/pgm/loglinear.pdf
+			double partitionFunction = 0.0d;
+
+			for(int i=0; i<y.getDimension().size(); i++){
+				partitionFunction += scoreWithEvidence(pgm::Evidence({{y.getId(), i}}));
+			}
+
+			double score_current = weight_product(x.getValue(), yvalue, params->theta, x.getDimension().size());
+			
+			
+			return score_current - log(partitionFunction);
+
+		}
+
 
 	};
 

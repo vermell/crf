@@ -7,9 +7,13 @@
 
 namespace pgm {
 	class GraphicalModel{
+
+		std::vector<double> featureStatistics;
 		
 		DiscreteDimension yDim = 0;
 		FeatureDimension featureDim = 0;
+
+		void generateStatistics();
 	public:
 
 		std::vector<NodePotential> unaries;

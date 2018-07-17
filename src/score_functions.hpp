@@ -5,22 +5,18 @@
 #include <iostream>
 #include "factor.hpp"
 #include <numeric>
+#include <boost/geometry/arithmetic/dot_product.hpp>
 
 namespace pgm {
 	inline double weight_product(FeatureVector fv, int variablevalue, std::vector<double> params, int stepsize){
 		std::vector<double> r;
+		double score = 0.0;
 		for(auto& f: fv){
 			int index = variablevalue * stepsize + f.first;
-			//std::cout << "index = " << index << " - v: " << variablevalue << std::endl; 
-			double score = params[index];
-			r.push_back(score);
+			score += params[index];
 		}
 
-		// sum up features
-		double sum = 0.0;
-		for(auto& n : r)
-			sum += n;
-		return sum;
+		return score;
 	};
 }
 #endif
