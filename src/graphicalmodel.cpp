@@ -215,7 +215,7 @@ void pgm::GraphicalModel::learnModel(){
 	LBFGSpp::LBFGSParam<double> param;
 
 	
-	param.epsilon = 1e-2;
+	param.epsilon = 1e-5;
     param.max_iterations = 100;
 
     // Create solver and function object

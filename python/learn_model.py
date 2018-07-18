@@ -21,18 +21,18 @@ def add_to_model(model, X, Y, offset, labels, num_features):
             for j in range(width):
                 if not X[i][j] is None:
                     # gen feature vector
-                    #featureVector = []
-                    # for label in range(labels):
-                    #    if label == Y[i][j]:
-                    #        featureVector.append(X[i][j])
-                    #    else:
-                    #        e = [0]*num_features
-                    #        featureVector.append(e)
+                    featureVector = []
+                    for label in range(labels):
+                        if label == Y[i][j]:
+                            featureVector.append(X[i][j])
+                        else:
+                            e = [0]*num_features
+                            featureVector.append(e)
 
-                    #f = list(chain(*featureVector))
-                    # print(len(f))
+                    f = list(chain(*featureVector))
+                    print(len(f))
                     # print(f)
-                    gm.addX(offset + offset_new, np.array(X[i][j]))
+                    gm.addX(offset + offset_new, np.array(f))
                     gm.addY(offset + offset_new, Y[i][j])
                     gm.addUnary(offset + offset_new,
                                 offset + offset_new)
@@ -72,7 +72,7 @@ corpus = pickle.load(open("../data/data_train.pkl", "rb"))
 trainset = list(chain.from_iterable(map(lambda x: x[1], corpus)))
 
 
-num_labels = 5
+num_labels = 3
 num_features = 71
 
 feature_indices = list(xrange(num_features))
@@ -94,19 +94,26 @@ for idx in range(len(trainset[:1])):
 print(len(trainset))
 
 gm.print_info()
-
 gm.learnModel()
 
-gm.infer()
+# Load parameter
+# params = pickle.load(
+#    open("/home/bilboi/programming/crf/data/params/unary_params2018_07_17_22_30.pickle", "r"))
+# gm.setParams(params)
+label = gm.infer()
 
-
-for y in range(len(Y_label)):
-    print("y*{} = {}".format(y, Y_label[y]))
+currid = 0
+for i in range(len(Y_label)):
+    for j in range(len(Y_label[0])):
+        if Y_label[i][j] != None:
+            print("y*{} = {} => {}".format(currid,
+                                           Y_label[i][j], label[currid]))
+            currid += 1
 
 
 # Store Parameter
 params = gm.getParams()
-print(params)
+# print(params)
 curr_time = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M")
 pickle.dump(
     params, open("/home/bilboi/programming/crf/data/params/unary_params{}.pickle".format(curr_time), "w"))

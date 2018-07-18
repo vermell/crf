@@ -63,8 +63,13 @@ class GraphicalModelWrapper {
 		gm->printInfo();
 	}
 
-	void infer() {
-		inferMQPBO(*gm);
+	np::ndarray infer() {
+		std::vector<size_t> v = inferMQPBO(*gm);
+
+		Py_intptr_t shape[1] = { v.size() };
+		np::ndarray result = np::zeros(1, shape, np::dtype::get_builtin<double>());
+		std::copy(v.begin(), v.end(), reinterpret_cast<double*>(result.get_data()));
+		return result;
 	}
 
     np::ndarray getParams() {

@@ -12,7 +12,7 @@
 #include <opengm/inference/auxiliary/minstcutkolmogorov.hxx> 
 #include "graphicalmodel.hpp"
 
-int inferMQPBO(pgm::GraphicalModel graphicalModel){
+std::vector<size_t> inferMQPBO(pgm::GraphicalModel graphicalModel){
 
 	
 
@@ -165,6 +165,6 @@ int inferMQPBO(pgm::GraphicalModel graphicalModel){
 		std::cout << "y" << id << "=" << labeling[variable] << "\n";
    }
 
-  return 0;
+  return labeling;
 }
 
